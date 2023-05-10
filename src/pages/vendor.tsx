@@ -1,15 +1,17 @@
 import React from "react"
 import {Box,Button,FormControl,Grid,Input,InputLabel,MenuItem,OutlinedInput,Select,Tab} from "@mui/material"
-import {API_URL} from "../shared";
+import {API_URL,masterData_vendor_columns} from "../shared";
 import axios from "axios";
 import {IState,IVendor,IVendorResourceType} from "../interfaces";
 import {TabContext,TabList,TabPanel} from "@mui/lab";
 import underscore from 'underscore';
 import {APITalkService} from "../services";
-import {setErrorSnackBarMessage, setSnackBarMessage} from "../redux";
+import {setErrorSnackBarMessage,setSnackBarMessage} from "../redux";
+import {DataGrid} from "@mui/x-data-grid";
 
 export const Vendor=() => {
     const [value,setValue]=React.useState('1');
+    const [vendors,setVendors]=React.useState<Array<IVendor>>([])
     const [statesData,setStatesData]=React.useState<string[]>([])
     const [cities,setCities]=React.useState<string[]>([])
 
@@ -26,7 +28,6 @@ export const Vendor=() => {
         resourceTypeId: "",
         phoneNo: ""
     });
-
 
     React.useEffect(() => {
         getMasterData()
@@ -46,12 +47,14 @@ export const Vendor=() => {
     const getMasterData=async () => {
         const states=axios.get(API_URL+"/masterData/getStates")
         const rootCategories=axios.get(API_URL+"/masterData/getRootCategories?format=json");
-        axios.all([states,rootCategories]).then((response) => {
+        const getVendors=axios.get(`${API_URL}/vendors/getVendors`)
+        axios.all([states,rootCategories,getVendors]).then((response) => {
             console.log("response",response);
             const onlyStates=response[0].data.map((d: IState) => d.state_name);
             const uniqData=underscore.uniq(onlyStates)
             setStatesData(uniqData);
-            setVendorResourcesType(response[1].data.data)
+            setVendorResourcesType(response[1].data.data);
+            setVendors(response[2].data.data)
         })
     }
 
@@ -64,14 +67,15 @@ export const Vendor=() => {
         setVendorForm({
             ...vendorForm,
             [field]: value
-      })
+        })
     }
 
-    const saveVendor = () =>{
+    const saveVendor=() => {
         console.log("vendorForm",vendorForm);
-        new APITalkService().post(`${API_URL}/vendors/register`,vendorForm,true).then((response)=>{
-            setSnackBarMessage("Vendor Created")
-        }).catch((e)=>{
+        new APITalkService().post(`${API_URL}/vendors/register`,vendorForm,true).then((response) => {
+            setSnackBarMessage("Vendor Created");
+            getMasterData()
+        }).catch((e) => {
             console.log("e",e.response.data.message)
             setErrorSnackBarMessage(e.response.data.message);
         })
@@ -88,8 +92,22 @@ export const Vendor=() => {
                     </TabList>
                 </Box>
                 <TabPanel value="1">
-
+                    <DataGrid
+                        getRowId={(row) => row._id}
+                        rows={vendors}
+                        columns={masterData_vendor_columns}
+                        paginationMode="server"
+                        filterMode='client'
+                        initialState={{
+                            pagination: {
+                                paginationModel: {page: 0,pageSize: 5},
+                            },
+                        }}
+                        pageSizeOptions={[5,10,15]}
+                    />
                 </TabPanel>
+
+
                 <TabPanel value="2">
                     <form>
                         <FormControl fullWidth margin="normal">
@@ -111,9 +129,9 @@ export const Vendor=() => {
                         </FormControl>
 
                         <FormControl fullWidth margin="normal">
-                            <OutlinedInput 
-                            value={vendorForm.password}
-                            placeholder="password"
+                            <OutlinedInput
+                                value={vendorForm.password}
+                                placeholder="password"
                                 onChange={(e) => {
                                     setFormValue('password',e.target.value)
                                 }}
@@ -181,9 +199,12 @@ export const Vendor=() => {
                         </FormControl>
 
                         <FormControl fullWidth margin="none">
-                            <Select fullWidth style={{margin: '10px auto',color: '#000'}}
+                            <Select
+                                fullWidth
+                                style={{margin: '10px auto',color: '#000'}}
                                 placeholder="Resource type"
                                 label="Resource type"
+                                defaultValue={vendorResourcesType[0].uuid}
                                 value={vendorForm.resourceTypeId}
                                 onChange={(e) => {
                                     const target=e.target as HTMLInputElement

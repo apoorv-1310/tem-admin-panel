@@ -6,13 +6,12 @@ import {Alert,AppBar,Avatar,Box,Button,Container,IconButton,Menu,MenuItem,Snackb
 import AdbIcon from '@mui/icons-material/Adb';
 import {useSelector} from 'react-redux';
 import {IGlobalStoreState} from './redux/store';
-import {hideToastAction,setErrorSnackBarMessage,setSnackBarMessage} from './redux';
+import {setErrorSnackBarMessage,setSnackBarMessage} from './redux';
 
 function App() {
   const [anchorElUser,setAnchorElUser]=React.useState<null|HTMLElement>(null);
   const [showSnackBar,setShowSnackbar]=React.useState<boolean>(false);
   const [showErrorSnackBar,setShowErrorSnackbar]=React.useState<boolean>(false);
-  const [snackBarViewMessage,setSnackBarViewMessage]=React.useState<string>('')
 
   const handleOpenUserMenu=(event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);

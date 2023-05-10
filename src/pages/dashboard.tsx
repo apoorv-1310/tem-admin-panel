@@ -9,7 +9,7 @@ import {DataGrid} from "@mui/x-data-grid";
 import {IState,IVendorResourceType} from "../interfaces";
 import OutlinedInput from '@mui/material/OutlinedInput';
 import {APITalkService} from "../services";
-import {setSnackBarMessage,showToastAction} from "../redux";
+import {setErrorSnackBarMessage,setSnackBarMessage} from "../redux";
 
 
 export const Dashboard=(): React.ReactElement => {
@@ -17,9 +17,7 @@ export const Dashboard=(): React.ReactElement => {
     const [vendorResourcesType,setVendorResourcesType]=React.useState<IVendorResourceType[]>([])
     const [statesData,setStatesData]=React.useState<IState[]>([])
     const [newVendorResource,setNewVendorResource]=React.useState<string>('')
-    React.useEffect(() => {
-        getMasterData()
-    },[]);
+    React.useEffect(() => {getMasterData()},[]);
 
     const getMasterData=async () => {
         const states=axios.get(API_URL+"/masterData/getStates")
@@ -35,12 +33,24 @@ export const Dashboard=(): React.ReactElement => {
         setValue(newValue);
     };
 
+    const updateResourceType=(resource: IVendorResourceType) => {
+        const newValue: string|null=window.prompt("Update resource ",resource.vendorResourceType);
+        new APITalkService().put(`${API_URL}/masterData/updateVendorResourceType/${resource.uuid}?vendorResourceType=${newValue}`,{},false)
+            .then((response) => {
+                setSnackBarMessage("Updated");
+                getMasterData()
+            }).catch((e)=>{
+                setErrorSnackBarMessage('Some Error Occured')
+            })
+    }
+
     const addNewVendorResourceType=() => {
         new APITalkService().post(`${API_URL}/masterData/addVendorResource?newResource=${newVendorResource}`,{},true)
             .then((response) => {
                 getMasterData();
                 setSnackBarMessage("New resource has been created")
             }).catch((error) => {
+                setErrorSnackBarMessage("Some error occured, please try again later")
             })
     }
 
@@ -66,13 +76,13 @@ export const Dashboard=(): React.ReactElement => {
                 </Box>
                 <TabPanel value="1">
                     <Grid container flex={1}>
-                        <Grid item justifyContent={'flex-end'} flex={0.8}>
+                        <Grid item justifyContent={'flex-end'} flex={0.9}>
                             <OutlinedInput value={newVendorResource} onChange={(e) => {
                                 setNewVendorResource(e.target.value)
                             }} placeholder="Add New Vendor Resources type" fullWidth style={{height: '40px'}} />
                         </Grid>
-                        <Grid flex={0.2}>
-                            <Button variant="contained" title="Add New Category" onClick={addNewVendorResourceType}>Add New Category</Button>
+                        <Grid flex={0.1}>
+                            <Button variant="contained" title="Add New Category" onClick={addNewVendorResourceType}>Save</Button>
                         </Grid>
                     </Grid>
                     <Divider style={{margin: '5px 0px',color: '#000'}} />
@@ -82,9 +92,14 @@ export const Dashboard=(): React.ReactElement => {
                                 return (
                                     <ListItem>
                                         <ListItemText title={vendorResource.vendorResourceType}>
-                                            <Grid item style={{justifyContent: 'space-between',display: 'flex'}}>
-                                                {vendorResource.vendorResourceType}
-                                                <Button variant="text" onClick={()=>{deleteResource(vendorResource)}} >Remove</Button>
+                                            <Grid container item style={{justifyContent: 'space-between',display: 'flex'}}>
+                                                <Grid item>
+                                                    {vendorResource.vendorResourceType}
+                                                </Grid>
+                                                <Grid item>
+                                                    <Button variant="text" color="primary" onClick={() => {updateResourceType(vendorResource)}}>Edit</Button>
+                                                    <Button variant="text" color="error" onClick={() => {deleteResource(vendorResource)}}>Remove</Button>
+                                                </Grid>
                                             </Grid>
                                         </ListItemText>
                                     </ListItem>
@@ -93,7 +108,7 @@ export const Dashboard=(): React.ReactElement => {
                         }
                     </Grid>
                 </TabPanel>
-                
+
                 <TabPanel value="2">
                     <DataGrid
                         getRowId={(row) => row._id}

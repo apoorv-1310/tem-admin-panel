@@ -23,12 +23,14 @@ export const appReducer = (state = initialState, action: BaseAction<any>) => {
     case "SET_SNACKBAR_MESSAGE": {
       return {
         ...state,
+        snackBarErrorMessage:'',
         snackBarMessage: action.payload,
       };
     }
     case "SET_SNACKBAR_ERROR_MESSAGE": {
       return {
         ...state,
+        snackBarMessage:'',
         snackBarErrorMessage: action.payload,
       };
     }
