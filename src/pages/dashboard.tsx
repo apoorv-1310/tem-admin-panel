@@ -1,18 +1,18 @@
 import React from "react";
-import {Box,Button,ButtonGroup,Divider,Grid,Input,ListItem,ListItemText,Tabs} from "@mui/material";
+import {Box,Button,Divider,Grid,ListItem,ListItemText} from "@mui/material";
 import TabList from '@mui/lab/TabList';
 import Tab from '@mui/material/Tab';
 import {TabContext,TabPanel} from "@mui/lab";
 import {API_URL,masterData_states_columns} from "../shared";
 import axios from "axios";
 import {DataGrid} from "@mui/x-data-grid";
-import {IState,IVendorResourceType} from "../interfaces";
+import {IGlobalProp, IState,IVendorResourceType} from "../interfaces";
 import OutlinedInput from '@mui/material/OutlinedInput';
 import {APITalkService} from "../services";
 import {setErrorSnackBarMessage,setSnackBarMessage} from "../redux";
 
 
-export const Dashboard=(): React.ReactElement => {
+export const Dashboard=(props:IGlobalProp): React.ReactElement => {
     const [value,setValue]=React.useState('1');
     const [vendorResourcesType,setVendorResourcesType]=React.useState<IVendorResourceType[]>([])
     const [statesData,setStatesData]=React.useState<IState[]>([])

@@ -1,20 +1,19 @@
 import React from "react"
-import {Box,Button,FormControl,Grid,Input,InputLabel,MenuItem,OutlinedInput,Select,Tab} from "@mui/material"
-import {API_URL,masterData_vendor_columns} from "../shared";
+import {Box,Button,FormControl,Grid,Input,InputLabel,Link,MenuItem,OutlinedInput,Select,Tab} from "@mui/material"
+import {API_URL} from "../shared";
 import axios from "axios";
-import {IState,IVendor,IVendorResourceType} from "../interfaces";
+import {IGlobalProp,IState,IVendor,IVendorResourceType} from "../interfaces";
 import {TabContext,TabList,TabPanel} from "@mui/lab";
 import underscore from 'underscore';
 import {APITalkService} from "../services";
 import {setErrorSnackBarMessage,setSnackBarMessage} from "../redux";
-import {DataGrid} from "@mui/x-data-grid";
+import {DataGrid,GridColDef,GridRenderCellParams} from "@mui/x-data-grid";
 
-export const Vendor=() => {
+export const Vendor=(props: IGlobalProp) => {
     const [value,setValue]=React.useState('1');
     const [vendors,setVendors]=React.useState<Array<IVendor>>([])
     const [statesData,setStatesData]=React.useState<string[]>([])
     const [cities,setCities]=React.useState<string[]>([])
-
     const [vendorResourcesType,setVendorResourcesType]=React.useState<IVendorResourceType[]>([]);
     const [vendorForm,setVendorForm]=React.useState<IVendor>({
         email: "",
@@ -26,7 +25,7 @@ export const Vendor=() => {
         city: "",
         state: "",
         resourceTypeId: "",
-        phoneNo: ""
+        phoneNo: "",
     });
 
     React.useEffect(() => {
@@ -34,7 +33,6 @@ export const Vendor=() => {
     },[]);
 
     React.useEffect(() => {
-        console.log("vendorForm",vendorForm)
         if(vendorForm.state) {
             new APITalkService().get(`${API_URL}/masterData/cities/${vendorForm.state}`).then((response) => {
                 const onlyCities=response.data.data.map((d: IState) => d.city_name);
@@ -45,23 +43,22 @@ export const Vendor=() => {
     },[vendorForm])
 
     const getMasterData=async () => {
-        const states=axios.get(API_URL+"/masterData/getStates")
         const rootCategories=axios.get(API_URL+"/masterData/getRootCategories?format=json");
-        const getVendors=axios.get(`${API_URL}/vendors/getVendors`)
-        axios.all([states,rootCategories,getVendors]).then((response) => {
-            console.log("response",response);
-            const onlyStates=response[0].data.map((d: IState) => d.state_name);
-            const uniqData=underscore.uniq(onlyStates)
-            setStatesData(uniqData);
-            setVendorResourcesType(response[1].data.data);
-            setVendors(response[2].data.data)
+        const getVendors=axios.get(`${API_URL}/vendors/getVendors`);
+        const getStates=axios.get(`${API_URL}/masterData/getStates`)
+        axios.all([rootCategories,getVendors,getStates]).then((response) => {
+            console.log("props",props)
+            setVendorResourcesType(response[0].data.data);
+            setVendors(response[1].data.data);
+            const onlyStates=response[2].data.map((d: IState) => d.state_name);
+            const uniqData=underscore.uniq(onlyStates);
+            setStatesData(uniqData)
         })
     }
 
     const handleChange=(event: React.SyntheticEvent,newValue: string) => {
         setValue(newValue);
     };
-
 
     const setFormValue=(field: string,value: string): void => {
         setVendorForm({
@@ -76,10 +73,67 @@ export const Vendor=() => {
             setSnackBarMessage("Vendor Created");
             getMasterData()
         }).catch((e) => {
-            console.log("e",e.response.data.message)
             setErrorSnackBarMessage(e.response.data.message);
         })
     }
+
+    const masterData_vendor_columns: GridColDef[]=[
+        {
+            field: "_id",
+            headerName: "Id",
+            width: 100
+        },
+        {
+            field: "uuid",headerName: "UUID",width: 100,
+            renderCell: (cellValue: GridRenderCellParams) => {
+                return <Link target="_self" href={`/vendor-detail/${cellValue.row.uuid}`}>{cellValue.row._id}</Link>;
+            },
+        },
+        {
+            field: "email",
+            headerName: "Email",
+            width: 220
+        },
+        {
+            field: "firstName",
+            headerName: "First Name",
+            width: 100
+        },
+        {
+            field: "lastName",
+            headerName: "Last Name",
+            width: 100
+        },
+        {
+            field: "avatar",
+            headerName: "Avatar",
+            width: 20
+        },
+        {
+            field: "country",
+            headerName: "Country",
+            width: 100
+        },
+        {
+            field: "city",
+            headerName: "City",
+            width: 100
+        },
+        {
+            field: "state",
+            headerName: "State",
+            width: 150
+        },
+        {
+            field: "resourceTypeId",
+            headerName: "Resource Type",
+            width: 200,
+            renderCell: (cellValue: GridRenderCellParams) => {
+                return `${cellValue.row.resourceInfo.vendorResourceType} `;
+            }
+        }
+    ];
+
 
     return (
         <Box paddingX={10}>
@@ -147,12 +201,12 @@ export const Vendor=() => {
                             />
                         </FormControl>
 
-                        <FormControl fullWidth margin="normal">
+                        <FormControl variant="filled" fullWidth margin="normal">
+                            <InputLabel>State</InputLabel>
+
                             <Select
                                 fullWidth
                                 style={{margin: '10px auto',color: '#000'}}
-                                placeholder="State"
-                                label="State"
                                 value={vendorForm.state}
                                 onChange={(e) => {
                                     console.log("e",e.target.value)
@@ -172,11 +226,11 @@ export const Vendor=() => {
                         </FormControl>
 
                         <FormControl fullWidth margin="normal">
+                            <InputLabel>City</InputLabel>
                             <Select
+                                variant="filled"
                                 fullWidth
                                 style={{margin: '10px auto',color: '#000'}}
-                                placeholder="City"
-                                label="City"
                                 value={vendorForm.city}
                                 onChange={(e) => {
                                     const target=e.target as HTMLInputElement;
@@ -198,13 +252,14 @@ export const Vendor=() => {
                             <OutlinedInput fullWidth placeholder="country" value={vendorForm.country} disabled />
                         </FormControl>
 
-                        <FormControl fullWidth margin="none">
+                        <FormControl variant="filled" fullWidth margin="none">
+                            <InputLabel>Resource type</InputLabel>
                             <Select
                                 fullWidth
                                 style={{margin: '10px auto',color: '#000'}}
                                 placeholder="Resource type"
                                 label="Resource type"
-                                defaultValue={vendorResourcesType[0].uuid}
+                                defaultValue={vendorResourcesType&&vendorResourcesType[0]&&vendorResourcesType[0].uuid}
                                 value={vendorForm.resourceTypeId}
                                 onChange={(e) => {
                                     const target=e.target as HTMLInputElement

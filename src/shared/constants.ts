@@ -1,4 +1,4 @@
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 
 export const API_URL = "http://localhost:8080/api";
 
@@ -9,17 +9,23 @@ export const masterData_states_columns: GridColDef[] = [
   { field: "isActive", headerName: "Active", width: 130 },
 ];
 
-export const masterData_vendor_columns: GridColDef[] = [
-  { field: "_id", headerName: "id", width: 100 },
-  { field: "uuid", headerName: "uuid", width: 100 },
-  { field: "email", headerName: "Email", width: 220 },
-  { field: "firstName", headerName: "First Name", width: 100 },
-  { field: "lastName", headerName: "Last Name", width: 100 },
-  { field: "avatar", headerName: "avatar", width: 20 },
-  { field: "country", headerName: "country", width: 100 },
-  { field: "city", headerName: "City", width: 100 },
-  { field: "state", headerName: "state", width: 150 },
-  { field: "resourceTypeId", headerName: "resourceTypeId", width: 100 },
-  { field: "createdOn", headerName: "created On", width: 100 },
-  { field: "resourceInfo", headerName: "resourceInfo", width: 100 },
-];
+export const ROOTRESOURCESTYPES = {
+  VENUE: "Venue",
+  CATERERS: "Caterers",
+  FLORISTS: "Florists",
+  MAKEUP_ARTISTS: "Make-up artists",
+  WEDDING_CARD: "Wedding Card",
+  MEHANDI_ARTISTS: "Mehandi Artists",
+  Cakes: "Cakes",
+  DJ: "DJ",
+  PHOTOGRAHERS_AND_VIDEOGRAPHERS: "Photographers and videographers",
+  PLASTIC_CROCKERY: "Plastic crockery",
+  WATER_PROVIDER: "Water Provider",
+  LIGHTNING_PROVIDER: "Lightning Provider",
+  POWER_BACKUP: "Power Backup",
+  CLOTHS_ON_RENT: "Cloths on Rent",
+  ARTIFICIAL_JWELLERY: "Artifical jwellery",
+  VINTAGE_CARS: "Vintage cars",
+  Matresses: "Matresses",
+  TENT_HOUSE: "Tent house",
+};

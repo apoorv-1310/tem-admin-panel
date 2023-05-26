@@ -1,18 +1,22 @@
 import './App.css';
 import {BrowserRouter,Route,Routes} from "react-router-dom";
-import {Dashboard,Vendor} from './pages';
+import {Dashboard,Vendor,VendorDetail} from './pages';
 import React from 'react';
 import {Alert,AppBar,Avatar,Box,Button,Container,IconButton,Menu,MenuItem,Snackbar,Toolbar,Tooltip,Typography} from '@mui/material';
 import AdbIcon from '@mui/icons-material/Adb';
 import {useSelector} from 'react-redux';
 import {IGlobalStoreState} from './redux/store';
 import {setErrorSnackBarMessage,setSnackBarMessage} from './redux';
+import {IGlobalProp,IState} from './interfaces';
+import axios from 'axios';
+import {API_URL} from './shared';
+import underscore from 'underscore';
 
 function App() {
   const [anchorElUser,setAnchorElUser]=React.useState<null|HTMLElement>(null);
   const [showSnackBar,setShowSnackbar]=React.useState<boolean>(false);
   const [showErrorSnackBar,setShowErrorSnackbar]=React.useState<boolean>(false);
-
+  const [statesData,setStatesData]=React.useState<Array<string>>([])
   const handleOpenUserMenu=(event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
@@ -23,6 +27,21 @@ function App() {
     setShowErrorSnackbar(snackBarErrorMessage.length>0)
   },[snackBarErrorMessage]);
 
+  React.useEffect(() => {
+    getMasterData()
+  },[]);
+
+  const getMasterData=async () => {
+    const states=axios.get(API_URL+"/masterData/getStates")
+    const anonymousLogin=axios.post(API_URL+"/users/anonymousLogin")
+    axios.all([states,anonymousLogin]).then((response) => {
+      const onlyStates=response[0].data.map((d: IState) => d.state_name);
+      const uniqData=underscore.uniq(onlyStates);
+      setStatesData(uniqData)
+      const token=response&&response[1].headers&&response[1].headers.get&&response[1].headers.token
+      localStorage.setItem("token",token)
+    })
+  }
 
   React.useEffect(() => {
     setShowSnackbar(snackBarMessage.length>0)
@@ -132,9 +151,6 @@ function App() {
           </Container>
         </AppBar>
       </Box>
-
-
-
       {
         showErrorSnackBar&&(
           <Snackbar
@@ -157,7 +173,6 @@ function App() {
           </Snackbar>
         )
       }
-
 
       {
         showSnackBar&&(
@@ -182,11 +197,27 @@ function App() {
         )
       }
 
-
       <Routes>
-        <Route path='/' Component={Dashboard} />
-        <Route path='/home' Component={Dashboard} />
-        <Route path='/vendor' Component={Vendor} />
+        <Route path='/'
+          element={
+            <Dashboard states={statesData} />
+          }
+        />
+        <Route path='/home'
+          element={
+            <Dashboard states={statesData} />
+          }
+        />
+        <Route path='/vendor'
+          element={
+            <Vendor states={statesData} />
+          }
+        />
+        <Route path='/vendor-detail/:uuid'
+          element={
+            <VendorDetail states={statesData} />
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
