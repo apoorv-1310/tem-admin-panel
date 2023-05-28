@@ -15,14 +15,14 @@ export const VendorDetail=(props: IGlobalProp) => {
     console.log("State in props",props)
     React.useEffect(() => {
         if(uuid) {
-            new APITalkService().get(`${API_URL}/vendors/getVendorDetails/${uuid}`).then((response) => {
+            new APITalkService().get(`${API_URL}/vendors/getVendorDetails/${uuid}`,true).then((response) => {
                 setVendorInfo(response.data.data)
             });
         }
     },[uuid]);
 
     const getCities=(state: string) => {
-        new APITalkService().get(`${API_URL}/masterData/cities/${state}`).then((response) => {
+        new APITalkService().get(`${API_URL}/masterData/cities/${state}`,true).then((response) => {
             const onlyCities=response.data.data.map((d: IState) => d.city_name);
             const uniqData=underscore.uniq(onlyCities);
             setCities(uniqData);
