@@ -12,7 +12,6 @@ export const VendorDetail=(props: IGlobalProp) => {
     const [vendorInfo,setVendorInfo]=React.useState<IVendor>();
     const [cities,setCities]=React.useState<string[]>([])
 
-    console.log("State in props",props)
     React.useEffect(() => {
         if(uuid) {
             new APITalkService().get(`${API_URL}/vendors/getVendorDetails/${uuid}`,true).then((response) => {

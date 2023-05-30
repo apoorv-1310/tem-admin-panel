@@ -43,9 +43,9 @@ export const Vendor=(props: IGlobalProp) => {
     },[vendorForm])
 
     const getMasterData=async () => {
-        const rootCategories=axios.get(API_URL+"/masterData/getRootCategories?format=json");
-        const getVendors=axios.get(`${API_URL}/vendors/getVendors`);
-        const getStates=axios.get(`${API_URL}/masterData/getStates`)
+        const rootCategories=axios.get(API_URL+"/masterData/getRootCategories?format=json",{headers:{token:'abcd'}});
+        const getVendors=axios.get(`${API_URL}/vendors/getVendors`,{headers:{token:'abcd'}});
+        const getStates=axios.get(`${API_URL}/masterData/getStates`,{headers:{token:'abcd'}})
         axios.all([rootCategories,getVendors,getStates]).then((response) => {
             console.log("props",props)
             setVendorResourcesType(response[0].data.data);

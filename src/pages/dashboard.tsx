@@ -1,27 +1,28 @@
 import React from "react";
-import {Box,Button,Divider,Grid,ListItem,ListItemText} from "@mui/material";
+import {Box,Button,ButtonGroup,Divider,Grid,ListItem,ListItemText} from "@mui/material";
 import TabList from '@mui/lab/TabList';
 import Tab from '@mui/material/Tab';
 import {TabContext,TabPanel} from "@mui/lab";
 import {API_URL,masterData_states_columns} from "../shared";
 import axios from "axios";
 import {DataGrid} from "@mui/x-data-grid";
-import {IGlobalProp, IState,IVendorResourceType} from "../interfaces";
+import {IGlobalProp,IState,IVendorResourceType} from "../interfaces";
 import OutlinedInput from '@mui/material/OutlinedInput';
 import {APITalkService} from "../services";
 import {setErrorSnackBarMessage,setSnackBarMessage} from "../redux";
+import {useNavigate} from "react-router-dom";
 
-
-export const Dashboard=(props:IGlobalProp): React.ReactElement => {
+export const Dashboard=(props: IGlobalProp): React.ReactElement => {
     const [value,setValue]=React.useState('1');
     const [vendorResourcesType,setVendorResourcesType]=React.useState<IVendorResourceType[]>([])
     const [statesData,setStatesData]=React.useState<IState[]>([])
-    const [newVendorResource,setNewVendorResource]=React.useState<string>('')
+    const [newVendorResource,setNewVendorResource]=React.useState<string>('');
+    const navigation = useNavigate()
     React.useEffect(() => {getMasterData()},[]);
 
     const getMasterData=async () => {
-        const states=axios.get(API_URL+"/masterData/getStates")
-        const rootCategories=axios.get(API_URL+"/masterData/getRootCategories?format=json");
+        const states=axios.get(API_URL+"/masterData/getStates",{headers: {token: 'abcd'}})
+        const rootCategories=axios.get(API_URL+"/masterData/getRootCategories?format=json",{headers: {token: 'abcd'}});
         axios.all([states,rootCategories]).then((response) => {
             console.log("response",response);
             setStatesData(response[0].data);
@@ -39,7 +40,7 @@ export const Dashboard=(props:IGlobalProp): React.ReactElement => {
             .then((response) => {
                 setSnackBarMessage("Updated");
                 getMasterData()
-            }).catch((e)=>{
+            }).catch((e) => {
                 setErrorSnackBarMessage('Some Error Occured')
             })
     }
@@ -66,6 +67,18 @@ export const Dashboard=(props:IGlobalProp): React.ReactElement => {
 
     return (
         <Box paddingX={10}>
+
+            <ButtonGroup variant="outlined" style={{marginTop: '20px',overflow: 'scroll', width:'100%',flexWrap:'wrap'}} >
+                {
+                    vendorResourcesType.map((vendorResource) => {
+                        return <Button variant="contained" style={{width:'200px',margin:5}} onClick={()=>{
+                            navigation(vendorResource.vendorResourceType.toLowerCase())
+                        }} >{vendorResource.vendorResourceType}</Button>
+                    })
+                }
+            </ButtonGroup>
+
+
             <h4>Master Tables</h4>
             <TabContext value={value}>
                 <Box sx={{borderBottom: 1,borderColor: 'divider'}}>

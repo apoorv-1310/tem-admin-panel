@@ -3,6 +3,7 @@ import React from "react";
 import {IVendor,IVendorResourceDetails,IVenueResourceInfo} from "../../interfaces";
 import {APITalkService} from "../../services";
 import {API_URL} from "../constants";
+import axios from "axios";
 
 interface IVenueResourceInfoFormProps {
     uuid: string;
@@ -21,6 +22,7 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
         getCities
     }=props
     const [venueResourceInfo,setVenueResourceInfo]=React.useState<IVenueResourceInfo>({
+        uuid: undefined,
         vendorId: uuid,
         name: "",
         phoneNo: "",
@@ -48,6 +50,7 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
     React.useEffect(() => {
         getVendorAndResourceInfo()
     },[]);
+    console.log("states",states)
 
     const getVendorAndResourceInfo=() => {
         new APITalkService().get(`${API_URL}/vendors/getVendorResourceDetails/${uuid}`,true)
@@ -56,8 +59,10 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
                 setVenueResourceInfo({
                     ...responseData.associatedResourceInfo,
                 })
-                if(responseData.associatedResourceInfo.state) {
+                if(responseData.associatedResourceInfo&&responseData.associatedResourceInfo.state) {
                     getCities(responseData.associatedResourceInfo.state)
+                } else {
+                    // getAllStates()
                 }
                 console.log("response",response)
             }).catch((error) => {
@@ -66,7 +71,12 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
     }
 
     const saveVenueResource=() => {
-        new APITalkService().post(`${API_URL}/venues/addVenue`,venueResourceInfo,true)
+        new APITalkService().post(`${API_URL}/venues/addVenue`,{
+            ...venueResourceInfo,
+            country: 'india',
+            address: venueResourceInfo.address,
+            vendorId: uuid
+        },true)
             .then((response) => {
                 console.log("response",response);
                 getVendorAndResourceInfo()
@@ -90,6 +100,37 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
         })
     }
 
+    const uploadMedia=(event: any) => {
+        var bodyFormData=new FormData();
+        console.log("event",event.target.files[0])
+        bodyFormData.append('image',event.target.files[0]);
+        axios({
+            method: "post",
+            url: `${API_URL}/masterData/uploadImage?resourceInfoId=${venueResourceInfo.uuid}&vendorId=${uuid}&caption=logo`,
+            data: bodyFormData,
+            headers: {"Content-Type": "multipart/form-data",token: 'abcd'},
+        })
+            .then(function(response) {
+                //handle success
+                console.log(response);
+                setVenueResourceInfo({
+                    ...venueResourceInfo,
+                    logo: response.data.fileInfo.filename
+                })
+            })
+            .catch(function(response) {
+                //handle error
+                console.log(response);
+            });
+    }
+
+    const getFileUrl=(fileName: string): string => {
+        if(fileName) {
+            return `${API_URL}/masterData/getFile?fileName=${venueResourceInfo.logo}&token=abcd`
+        }
+        return ''
+    }
+
     return (
         <Grid container direction={'column'} flex={1}>
             <Grid>
@@ -98,14 +139,17 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
             <Grid container direction={'row'} justifyContent='space-between'>
                 <Grid item flex={0.2} paddingX={5}>
                     <FormControl variant="outlined" fullWidth margin="dense">
-                        <img src="/user-sample.jpeg" />
+                        <img src={venueResourceInfo.logo? getFileUrl(venueResourceInfo.logo):"/user-sample.jpeg"} />
                         <OutlinedInput
                             type="file"
-                            value={venueResourceInfo?.logo}
+                            value=''
                             placeholder="Logo"
                             required
+                            disabled={!venueResourceInfo.uuid}
+                            onChange={uploadMedia}
                             inputProps={{
-                                type: 'file'
+                                type: 'file',
+                                src: getFileUrl(venueResourceInfo.logo)
                             }}
                         />
                     </FormControl>
@@ -216,6 +260,7 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
                             <h4>Set amenities</h4>
                         </Grid>
                         <Grid item container direction={'row'}>
+
                             <Grid item className="amenitiesGridItem">
                                 <FormControlLabel
                                     control={<Switch />}
@@ -227,6 +272,7 @@ export const VenueResourceInfoForm=(props: IVenueResourceInfoFormProps) => {
                                     }}
                                 />
                             </Grid>
+
                             <Grid item className="amenitiesGridItem">
                                 <FormControlLabel
                                     control={<Switch />}

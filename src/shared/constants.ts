@@ -1,6 +1,9 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 
 export const API_URL = "http://localhost:8080/api";
+export const API_ADMIN_URL = "http://localhost:8080/adminApi";
+
+// export const API_URL = "http://13.127.255.34/api";
 
 export const masterData_states_columns: GridColDef[] = [
   { field: "_id", headerName: "ID", width: 300 },

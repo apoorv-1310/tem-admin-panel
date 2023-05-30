@@ -1,6 +1,6 @@
 import './App.css';
 import {BrowserRouter,Route,Routes} from "react-router-dom";
-import {Dashboard,Vendor,VendorDetail} from './pages';
+import {Dashboard,Vendor,VendorDetail, Venues} from './pages';
 import React from 'react';
 import {Alert,AppBar,Avatar,Box,Button,Container,IconButton,Menu,MenuItem,Snackbar,Toolbar,Tooltip,Typography} from '@mui/material';
 import AdbIcon from '@mui/icons-material/Adb';
@@ -32,8 +32,8 @@ function App() {
   },[]);
 
   const getMasterData=async () => {
-    const states=axios.get(API_URL+"/masterData/getStates")
-    const anonymousLogin=axios.post(API_URL+"/users/anonymousLogin")
+    const states=axios.get(API_URL+"/masterData/getStates",{headers: {token: 'abcd'}})
+    const anonymousLogin=axios.post(API_URL+"/users/anonymousLogin",{headers: {token: 'abcd'}})
     axios.all([states,anonymousLogin]).then((response) => {
       const onlyStates=response[0].data.map((d: IState) => d.state_name);
       const uniqData=underscore.uniq(onlyStates);
@@ -218,6 +218,7 @@ function App() {
             <VendorDetail states={statesData} />
           }
         />
+        <Route path='/venue' element={<Venues states={statesData}  />} />
       </Routes>
     </BrowserRouter>
   );

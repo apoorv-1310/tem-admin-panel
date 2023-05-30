@@ -1,4 +1,6 @@
 export interface IVenueResourceInfo {
+  _id?:string;
+  uuid?:string;
   vendorId: string;
   name: string;
   phoneNo: string;
